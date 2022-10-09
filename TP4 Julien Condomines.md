@@ -98,3 +98,94 @@ Le programme **[** est un programme de test, il nous permet décrire des conditi
 
 ## Exercice 5 
 #### Installez les paquets emacs et lynx à l’aide de la version graphique d’aptitude  (et prenez deux minutes pour vous renseigner et tester ces paquets). 
+
+Après installation, on peut voir que Emacs est un éditeur de texte et que Lynx est un navigateur internet qui fonctionne tout deux dans un terminal.
+
+## Exercice 6 
+#### 1) Installer la version Oracle de Java (avec l’ajout des PPA)
+#### 2) Vérifiez qu’un nouveau fichier a été créé dans /etc/apt/sources.list.d. Que contient-il ?
+
+Le fichier contient les réferences vers les logiciels de gestion de paquets :
+deb http://ppa.launchpad.net/linuxuprising/java/ubuntu focal main
+#deb-src http://ppa.launchpad.net/linuxuprising/java/ubuntu focal main
+
+## Exercice 7
+
+## Exercice 8
+### Création d’un paquet Debian avec dpkg-deb
+#### 1) Dans le dossier scripts créé lors du TP 2, créez un sous-dossier origine-commande où vous créerez un sous-dossier DEBIAN, ainsi que l’arborescence usr/local/bin où vous placerez le script écrit à l’exercice 2
+
+Pour créer le sous dossier origine-commande, ainsi que le sous dossier DEBIAN et la bonne arborescence il faut réaliser ces commandes :
+```
+mkdir origin-commande
+mkdir origin-commande/DEBIAN
+mkdir origin-commande/usr
+mkdir origin-commande/usr/local
+mkdir origin-commande/usr/local/bin
+touch origin-commande/usr/local/bin/script.sh
+``` 
+#### 2) Dans le dossier DEBIAN, créez un fichier control avec les champs suivants :
+
+On créer le fichier puis on y ajoute les différents champs comme demandés.
+
+#### 3) Revenez dans le dossier parent de origine-commande (normalement, c’est votre $HOME) et tapez la commande suivante pour construire le paquet :
+
+`dpkg-deb: building package 'origine-commande' in 'origine-commande.deb'.`
+
+Le pacquet est crée !
+
+### Création du dépôt personnel avec reprepro
+#### 1) Dans votre dossier personnel, commencez par créer un dossier repo-cpe. Ce sera la racine de votre dépôt
+
+Pour créer le dossier repo-cpe, on se rend tout d'abord dans notre dossier personnel puis on utilise la commande `mkdir repo-cpe`
+
+#### 2) Ajoutez-y deux sous-dossiers : conf (qui contiendra la configuration du dépôt) et packages (qui contiendra nos paquets)
+On créer les 2 sous dossiers en rentrant les commandes: `mkdir /repo-cpe/conf` et `mkdir /repo-cpe/packages`
+
+#### 3) Dans conf, créez le fichier distributions suivant :
+
+On créer le fichier et on rentre les différents champs:
+```
+Origin: Un nom, une URL, ou tout texte expliquant la provenance du dépôt
+Label: Nom du dépôt
+// Suite: stable
+Codename: focal #!! A MODIFIER selon la distribution cible !!
+Architectures: i386 amd64 #(architectures cibles)
+Components: universe #(correspond à notre cas)
+Description: Une description du dépôt
+``` 
+#### 4) Dans le dossier repo-cpe, générez l’arborescence du dépôt avec la commande
+
+La commande `reprepro -b . export`nous génère donc notre arborescence du dépôt.
+
+#### 5) Copiez le paquet origine-commande.deb créé précédemment dans le dossier packages du dépôt, puis, à la racine du dépôt, exécutez la commande
+
+On va utiliser la commande : `cp origine-commande.deb ../repo-cpe/packages` pour copier le paquet depuis le dossier script puis on va exécuter la commande : `reprepro -b . includedeb cosmic origine-commande.deb`
+
+#### 6) Il faut à présent indiquer à apt qu’il existe un nouveau dépôt dans lequel il peut trouver des logiciels. Pour cela, créez (avec sudo) dans le dossier /etc/apt/sources.list.d le fichier repo-cpe.list contenant :
+
+On se rend dans /etc/apt/sources.list.d avec la commande cd, puis on crée le fichier avec la commande sudo touch repo-cpe.list et on l'édite avec sudo nano.
+
+#### 7) Lancez la commande sudo apt update.
+
+### Signature du dépôt avec GPG
+#### 1) Commencez par créer une nouvelle paire de clés avec la commande :
+
+On crée la paire de clés avec la commande `gpg --gen-key`, puis on rentre un nom, une adresse mail et une passphrase à retenir.
+
+#### 2) Ajoutez à la configuration du dépôt fichier distributions la ligne suivante :
+
+On retourne dans le dossier conf avec cd /repo-cpe/conf et on édite le fichier distributions pour rajouter SignWith: yes
+
+#### 3) Ajoutez la clé à votre dépôt :
+
+On se met dans le dossier repo-cpe puis on tape la commande : `reprepro --ask-passphrase -b . export`
+
+#### 4) Ajoutez votre clé publique à votre dépôt avec la commande :
+
+Toujours dans le dossier on tape la commande `gpg --export -a "auteur" > public.key`
+
+#### 5) Enfin, ajoutez cette clé à la liste des clés fiables connues de apt 
+
+Puis pour finir on ajoute cette clé dans la liste apt avec la commande `sudo apt-key add public.key`
+
